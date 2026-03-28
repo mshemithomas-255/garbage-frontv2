@@ -1,62 +1,73 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../../utils/api";
 
 export const fetchUsers = createAsyncThunk(
   "users/fetch",
-  async (_, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.get("/api/users", {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/api/users");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to fetch users" },
+      );
+    }
   },
 );
 
 export const createUser = createAsyncThunk(
   "users/create",
-  async (userData, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.post("/api/users", userData, {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/api/users", userData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to create user" },
+      );
+    }
   },
 );
 
 export const updateUser = createAsyncThunk(
   "users/update",
-  async ({ id, data }, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.put(`/api/users/${id}`, data, {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/api/users/${id}`, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to update user" },
+      );
+    }
   },
 );
 
 export const deleteUser = createAsyncThunk(
   "users/delete",
-  async (id, { getState }) => {
-    const token = getState().auth.token;
-    await axios.delete(`/api/users/${id}`, {
-      headers: { "x-auth-token": token },
-    });
-    return id;
+  async (id, { rejectWithValue }) => {
+    try {
+      await api.delete(`/api/users/${id}`);
+      return id;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to delete user" },
+      );
+    }
   },
 );
 
 export const markUserPaid = createAsyncThunk(
   "users/markPaid",
-  async ({ id, amount }, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.put(
-      `/api/users/${id}/pay`,
-      { amount },
-      {
-        headers: { "x-auth-token": token },
-      },
-    );
-    return response.data;
+  async ({ id, amount }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/api/users/${id}/pay`, { amount });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to mark user as paid" },
+      );
+    }
   },
 );
 
@@ -79,7 +90,7 @@ const userSlice = createSlice({
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload?.msg || action.error.message;
       })
       .addCase(createUser.fulfilled, (state, action) => {
         state.users.push(action.payload);

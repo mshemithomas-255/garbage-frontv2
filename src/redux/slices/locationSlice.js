@@ -1,47 +1,59 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../../utils/api";
 
 export const fetchLocations = createAsyncThunk(
   "locations/fetch",
-  async (_, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.get("/api/locations", {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const response = await api.get("/api/locations");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to fetch locations" },
+      );
+    }
   },
 );
 
 export const createLocation = createAsyncThunk(
   "locations/create",
-  async (locationData, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.post("/api/locations", locationData, {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async (locationData, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/api/locations", locationData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to create location" },
+      );
+    }
   },
 );
 
 export const updateLocation = createAsyncThunk(
   "locations/update",
-  async ({ id, data }, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.put(`/api/locations/${id}`, data, {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/api/locations/${id}`, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to update location" },
+      );
+    }
   },
 );
 
 export const deleteLocation = createAsyncThunk(
   "locations/delete",
-  async (id, { getState }) => {
-    const token = getState().auth.token;
-    await axios.delete(`/api/locations/${id}`, {
-      headers: { "x-auth-token": token },
-    });
-    return id;
+  async (id, { rejectWithValue }) => {
+    try {
+      await api.delete(`/api/locations/${id}`);
+      return id;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to delete location" },
+      );
+    }
   },
 );
 
@@ -64,7 +76,7 @@ const locationSlice = createSlice({
       })
       .addCase(fetchLocations.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload?.msg || action.error.message;
       })
       .addCase(createLocation.fulfilled, (state, action) => {
         state.locations.push(action.payload);

@@ -1,76 +1,87 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../../utils/api";
 
 export const fetchPlots = createAsyncThunk(
   "plots/fetch",
-  async (_, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.get("/api/plots", {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/api/plots");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to fetch plots" },
+      );
+    }
   },
 );
 
 export const createPlot = createAsyncThunk(
   "plots/create",
-  async (plotData, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.post("/api/plots", plotData, {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async (plotData, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/api/plots", plotData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to create plot" },
+      );
+    }
   },
 );
 
 export const updatePlot = createAsyncThunk(
   "plots/update",
-  async ({ id, data }, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.put(`/api/plots/${id}`, data, {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/api/plots/${id}`, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to update plot" },
+      );
+    }
   },
 );
 
 export const deletePlot = createAsyncThunk(
   "plots/delete",
-  async (id, { getState }) => {
-    const token = getState().auth.token;
-    await axios.delete(`/api/plots/${id}`, {
-      headers: { "x-auth-token": token },
-    });
-    return id;
+  async (id, { rejectWithValue }) => {
+    try {
+      await api.delete(`/api/plots/${id}`);
+      return id;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to delete plot" },
+      );
+    }
   },
 );
 
 export const addUserToPlot = createAsyncThunk(
   "plots/addUser",
-  async ({ plotId, userId }, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.post(
-      `/api/plots/${plotId}/users`,
-      { userId },
-      {
-        headers: { "x-auth-token": token },
-      },
-    );
-    return response.data;
+  async ({ plotId, userId }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/api/plots/${plotId}/users`, { userId });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to add user to plot" },
+      );
+    }
   },
 );
 
 export const removeUserFromPlot = createAsyncThunk(
   "plots/removeUser",
-  async ({ plotId, userId }, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.delete(
-      `/api/plots/${plotId}/users/${userId}`,
-      {
-        headers: { "x-auth-token": token },
-      },
-    );
-    return response.data;
+  async ({ plotId, userId }, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/api/plots/${plotId}/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to remove user from plot" },
+      );
+    }
   },
 );
 
@@ -93,7 +104,7 @@ const plotSlice = createSlice({
       })
       .addCase(fetchPlots.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload?.msg || action.error.message;
       })
       .addCase(createPlot.fulfilled, (state, action) => {
         state.plots.push(action.payload);

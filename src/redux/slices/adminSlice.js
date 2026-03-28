@@ -1,36 +1,45 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../../utils/api";
 
 export const fetchAdmins = createAsyncThunk(
   "admins/fetch",
-  async (_, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.get("/api/admins", {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/api/admins");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to fetch admins" },
+      );
+    }
   },
 );
 
 export const createAdmin = createAsyncThunk(
   "admins/create",
-  async (adminData, { getState }) => {
-    const token = getState().auth.token;
-    const response = await axios.post("/api/admins", adminData, {
-      headers: { "x-auth-token": token },
-    });
-    return response.data;
+  async (adminData, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/api/admins", adminData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to create admin" },
+      );
+    }
   },
 );
 
 export const deleteAdmin = createAsyncThunk(
   "admins/delete",
-  async (id, { getState }) => {
-    const token = getState().auth.token;
-    await axios.delete(`/api/admins/${id}`, {
-      headers: { "x-auth-token": token },
-    });
-    return id;
+  async (id, { rejectWithValue }) => {
+    try {
+      await api.delete(`/api/admins/${id}`);
+      return id;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { msg: "Failed to delete admin" },
+      );
+    }
   },
 );
 
@@ -53,7 +62,7 @@ const adminSlice = createSlice({
       })
       .addCase(fetchAdmins.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload?.msg || action.error.message;
       })
       .addCase(createAdmin.fulfilled, (state, action) => {
         state.admins.push(action.payload);
