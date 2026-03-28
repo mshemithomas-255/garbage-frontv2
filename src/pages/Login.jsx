@@ -79,7 +79,7 @@ const Login = () => {
 
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">
-            Demo credentials: admin@example.com / admin123
+            {/* Demo credentials: admin@example.com / admin123 */}
           </p>
         </div>
       </div>
