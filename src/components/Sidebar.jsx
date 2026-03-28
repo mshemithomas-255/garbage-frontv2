@@ -8,6 +8,8 @@ import {
   FaUserShield,
   FaSignOutAlt,
   FaUserCircle,
+  FaTrash,
+  FaCog,
 } from "react-icons/fa";
 import ProfileModal from "./ProfileModal";
 
@@ -32,55 +34,85 @@ const Sidebar = ({ sidebarOpen, user, onLogout }) => {
   return (
     <>
       <div
-        className={`hidden md:block fixed left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 z-50 ${sidebarOpen ? "w-64" : "w-20"}`}
+        className={`hidden md:block fixed left-0 top-0 h-full bg-gradient-to-b from-gray-900 to-gray-800 text-white transition-all duration-300 z-50 shadow-xl ${sidebarOpen ? "w-64" : "w-20"}`}
       >
         <div className="flex flex-col h-full">
+          {/* Logo Section */}
           <div className="p-4 border-b border-gray-700">
             {sidebarOpen ? (
-              <h1 className="text-xl font-bold">Garbage Collection</h1>
+              <div className="flex items-center space-x-3">
+                <div className="bg-green-500 rounded-lg p-2">
+                  <FaTrash className="text-white text-xl" />
+                </div>
+                <h1 className="text-lg font-bold">Garbage Collection</h1>
+              </div>
             ) : (
               <div className="flex justify-center">
-                <FaTrash className="text-2xl" />
+                <div className="bg-green-500 rounded-lg p-2">
+                  <FaTrash className="text-white text-xl" />
+                </div>
               </div>
             )}
           </div>
 
-          <nav className="flex-1 py-4 overflow-y-auto">
+          {/* Navigation Menu */}
+          <nav className="flex-1 py-6 overflow-y-auto">
             {menuItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center py-3 px-4 mb-2 transition-colors ${
+                  `flex items-center py-3 px-4 mb-2 mx-2 rounded-lg transition-all duration-200 ${
                     isActive
-                      ? "bg-green-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800"
+                      ? "bg-green-600 text-white shadow-lg"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }`
                 }
               >
                 <div className="text-xl">{item.icon}</div>
-                {sidebarOpen && <span className="ml-3">{item.name}</span>}
+                {sidebarOpen && (
+                  <span className="ml-3 text-sm font-medium">{item.name}</span>
+                )}
               </NavLink>
             ))}
           </nav>
 
-          <div className="border-t border-gray-700">
+          {/* Footer Actions */}
+          <div className="border-t border-gray-700 pt-4 pb-6">
             {/* Profile Button */}
             <button
               onClick={() => setShowProfileModal(true)}
-              className="flex items-center w-full py-3 px-4 text-gray-300 hover:bg-gray-800 transition-colors"
+              className="flex items-center w-full py-3 px-4 mx-2 mb-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200"
             >
               <FaUserCircle className="text-xl" />
-              {sidebarOpen && <span className="ml-3">Profile Settings</span>}
+              {sidebarOpen && (
+                <div className="ml-3 text-left">
+                  <p className="text-sm font-medium">{user?.name}</p>
+                  <p className="text-xs text-gray-400">{user?.role}</p>
+                </div>
+              )}
+            </button>
+
+            {/* Settings Button */}
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className="flex items-center w-full py-3 px-4 mx-2 mb-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200"
+            >
+              <FaCog className="text-xl" />
+              {sidebarOpen && (
+                <span className="ml-3 text-sm font-medium">Settings</span>
+              )}
             </button>
 
             {/* Logout Button */}
             <button
               onClick={onLogout}
-              className="flex items-center w-full py-3 px-4 text-gray-300 hover:bg-gray-800 transition-colors"
+              className="flex items-center w-full py-3 px-4 mx-2 rounded-lg text-red-400 hover:bg-red-600 hover:text-white transition-all duration-200"
             >
               <FaSignOutAlt className="text-xl" />
-              {sidebarOpen && <span className="ml-3">Logout</span>}
+              {sidebarOpen && (
+                <span className="ml-3 text-sm font-medium">Logout</span>
+              )}
             </button>
           </div>
         </div>

@@ -36,6 +36,7 @@ export const changePassword = createAsyncThunk(
       localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;
     } catch (error) {
+      console.error("Change password error:", error.response?.data);
       return rejectWithValue(
         error.response?.data || { msg: "Failed to change password" },
       );
