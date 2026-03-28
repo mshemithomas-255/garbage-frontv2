@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   FaHome,
@@ -8,9 +8,13 @@ import {
   FaUserShield,
   FaTimes,
   FaSignOutAlt,
+  FaUserCircle,
 } from "react-icons/fa";
+import ProfileModal from "./ProfileModal";
 
 const MobileSidebar = ({ isOpen, onClose, user, onLogout }) => {
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -75,13 +79,26 @@ const MobileSidebar = ({ isOpen, onClose, user, onLogout }) => {
             ))}
           </nav>
 
-          <div className="p-4 border-t border-gray-700">
+          <div className="border-t border-gray-700">
+            {/* Profile Button */}
+            <button
+              onClick={() => {
+                setShowProfileModal(true);
+                onClose();
+              }}
+              className="flex items-center w-full py-3 px-4 text-gray-300 hover:bg-gray-800 transition-colors"
+            >
+              <FaUserCircle className="text-xl" />
+              <span className="ml-3">Profile Settings</span>
+            </button>
+
+            {/* Logout Button */}
             <button
               onClick={() => {
                 onLogout();
                 onClose();
               }}
-              className="flex items-center w-full py-2 px-4 text-gray-300 hover:bg-gray-800 rounded transition-colors"
+              className="flex items-center w-full py-3 px-4 text-gray-300 hover:bg-gray-800 transition-colors"
             >
               <FaSignOutAlt className="text-xl" />
               <span className="ml-3">Logout</span>
@@ -89,6 +106,11 @@ const MobileSidebar = ({ isOpen, onClose, user, onLogout }) => {
           </div>
         </div>
       </div>
+
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
     </>
   );
 };

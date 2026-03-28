@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   FaHome,
@@ -7,10 +7,13 @@ import {
   FaUsers,
   FaUserShield,
   FaSignOutAlt,
-  FaTrash,
+  FaUserCircle,
 } from "react-icons/fa";
+import ProfileModal from "./ProfileModal";
 
 const Sidebar = ({ sidebarOpen, user, onLogout }) => {
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
   const menuItems = [
     { path: "/admin", name: "Dashboard", icon: <FaHome /> },
     { path: "/admin/locations", name: "Locations", icon: <FaMapMarkerAlt /> },
@@ -27,50 +30,67 @@ const Sidebar = ({ sidebarOpen, user, onLogout }) => {
   }
 
   return (
-    <div
-      className={`hidden md:block fixed left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 z-50 ${sidebarOpen ? "w-64" : "w-20"}`}
-    >
-      <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-gray-700">
-          {sidebarOpen ? (
-            <h1 className="text-xl font-bold">Garbage Collection</h1>
-          ) : (
-            <div className="flex justify-center">
-              <FaTrash className="text-2xl" />
-            </div>
-          )}
-        </div>
+    <>
+      <div
+        className={`hidden md:block fixed left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 z-50 ${sidebarOpen ? "w-64" : "w-20"}`}
+      >
+        <div className="flex flex-col h-full">
+          <div className="p-4 border-b border-gray-700">
+            {sidebarOpen ? (
+              <h1 className="text-xl font-bold">Garbage Collection</h1>
+            ) : (
+              <div className="flex justify-center">
+                <FaTrash className="text-2xl" />
+              </div>
+            )}
+          </div>
 
-        <nav className="flex-1 py-4">
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center py-3 px-4 mb-2 transition-colors ${
-                  isActive
-                    ? "bg-green-600 text-white"
-                    : "text-gray-300 hover:bg-gray-800"
-                }`
-              }
+          <nav className="flex-1 py-4 overflow-y-auto">
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center py-3 px-4 mb-2 transition-colors ${
+                    isActive
+                      ? "bg-green-600 text-white"
+                      : "text-gray-300 hover:bg-gray-800"
+                  }`
+                }
+              >
+                <div className="text-xl">{item.icon}</div>
+                {sidebarOpen && <span className="ml-3">{item.name}</span>}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="border-t border-gray-700">
+            {/* Profile Button */}
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className="flex items-center w-full py-3 px-4 text-gray-300 hover:bg-gray-800 transition-colors"
             >
-              <div className="text-xl">{item.icon}</div>
-              {sidebarOpen && <span className="ml-3">{item.name}</span>}
-            </NavLink>
-          ))}
-        </nav>
+              <FaUserCircle className="text-xl" />
+              {sidebarOpen && <span className="ml-3">Profile Settings</span>}
+            </button>
 
-        <div className="p-4 border-t border-gray-700">
-          <button
-            onClick={onLogout}
-            className="flex items-center w-full py-2 px-4 text-gray-300 hover:bg-gray-800 rounded transition-colors"
-          >
-            <FaSignOutAlt className="text-xl" />
-            {sidebarOpen && <span className="ml-3">Logout</span>}
-          </button>
+            {/* Logout Button */}
+            <button
+              onClick={onLogout}
+              className="flex items-center w-full py-3 px-4 text-gray-300 hover:bg-gray-800 transition-colors"
+            >
+              <FaSignOutAlt className="text-xl" />
+              {sidebarOpen && <span className="ml-3">Logout</span>}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
+    </>
   );
 };
 
