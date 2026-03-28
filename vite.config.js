@@ -13,27 +13,4 @@ export default defineConfig({
       },
     },
   },
-  build: {
-    outDir: "dist",
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-redux", "@reduxjs/toolkit"],
-          charts: ["recharts"],
-          icons: ["react-icons"],
-          router: ["react-router-dom"],
-        },
-      },
-    },
-  },
-  optimizeDeps: {
-    include: [
-      "react",
-      "react-dom",
-      "react-redux",
-      "@reduxjs/toolkit",
-      "recharts",
-    ],
-  },
 });
