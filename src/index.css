@@ -1,0 +1,199 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  html {
+    @apply touch-manipulation;
+  }
+
+  body {
+    @apply bg-gray-50 font-sans antialiased overflow-x-hidden;
+  }
+
+  /* Mobile touch targets */
+  button,
+  a,
+  [role="button"] {
+    @apply min-h-[44px] min-w-[44px] inline-flex items-center justify-center;
+  }
+
+  /* Better tap highlights */
+  .tap-highlight-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Responsive text */
+  h1 {
+    @apply text-2xl md:text-3xl font-bold;
+  }
+
+  h2 {
+    @apply text-xl md:text-2xl font-semibold;
+  }
+
+  h3 {
+    @apply text-lg md:text-xl font-semibold;
+  }
+}
+
+@layer components {
+  /* Mobile-optimized card */
+  .card-mobile {
+    @apply bg-white rounded-lg shadow-sm p-4 md:p-6;
+  }
+
+  /* Touch-friendly buttons */
+  .btn-touch {
+    @apply px-4 py-3 md:px-6 md:py-2 rounded-lg font-medium transition-all duration-200 
+           active:scale-95 touch-manipulation;
+  }
+
+  .btn-primary {
+    @apply btn-touch bg-green-500 text-white hover:bg-green-600;
+  }
+
+  .btn-secondary {
+    @apply btn-touch bg-blue-500 text-white hover:bg-blue-600;
+  }
+
+  .btn-danger {
+    @apply btn-touch bg-red-500 text-white hover:bg-red-600;
+  }
+
+  /* Mobile-optimized form inputs */
+  .input-mobile {
+    @apply w-full px-4 py-3 md:px-3 md:py-2 border border-gray-300 rounded-lg 
+           focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
+           text-base md:text-sm;
+  }
+
+  /* Mobile sidebar */
+  .sidebar-mobile {
+    @apply fixed inset-y-0 left-0 transform transition-transform duration-300 ease-in-out z-50
+           w-64 bg-gray-900 text-white shadow-xl;
+  }
+
+  .sidebar-mobile-closed {
+    @apply -translate-x-full;
+  }
+
+  .sidebar-mobile-open {
+    @apply translate-x-0;
+  }
+
+  /* Mobile overlay */
+  .overlay-mobile {
+    @apply fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300;
+  }
+
+  /* Mobile bottom sheet */
+  .bottom-sheet {
+    @apply fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-xl z-50
+           transform transition-transform duration-300 ease-out;
+  }
+
+  .bottom-sheet-closed {
+    @apply translate-y-full;
+  }
+
+  .bottom-sheet-open {
+    @apply translate-y-0;
+  }
+
+  /* Mobile-friendly table */
+  .table-responsive {
+    @apply block w-full overflow-x-auto -webkit-overflow-scrolling-touch;
+  }
+
+  .table-mobile {
+    @apply min-w-full divide-y divide-gray-200;
+  }
+
+  /* Mobile grid */
+  .grid-mobile {
+    @apply grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  /* Mobile stat cards */
+  .stat-card-mobile {
+    @apply bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow;
+  }
+
+  /* Mobile floating action button */
+  .fab {
+    @apply fixed bottom-6 right-6 bg-green-500 text-white rounded-full p-4 
+           shadow-lg hover:bg-green-600 transition-all active:scale-95
+           z-30 md:hidden;
+  }
+
+  /* Mobile bottom navigation */
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 
+           flex justify-around items-center py-2 px-4 z-30 md:hidden;
+  }
+
+  .bottom-nav-item {
+    @apply flex flex-col items-center py-2 px-3 text-gray-600 hover:text-green-500 
+           transition-colors min-h-[44px];
+  }
+
+  .bottom-nav-item-active {
+    @apply text-green-500;
+  }
+
+  /* Swipeable cards */
+  .swipe-card {
+    @apply relative overflow-hidden;
+  }
+
+  /* Pull to refresh indicator */
+  .pull-to-refresh {
+    @apply flex justify-center items-center py-4 text-gray-500;
+  }
+
+  /* Mobile modal */
+  .modal-mobile {
+    @apply fixed inset-0 flex items-end md:items-center justify-center z-50;
+  }
+
+  .modal-content-mobile {
+    @apply bg-white rounded-t-2xl md:rounded-lg w-full max-w-md 
+           max-h-[90vh] overflow-y-auto md:mx-4;
+  }
+}
+
+@layer utilities {
+  /* Safe area insets for notched devices */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Touch-friendly tap highlight removal */
+  .tap-highlight-off {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Better focus rings for touch devices */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
+  }
+}
