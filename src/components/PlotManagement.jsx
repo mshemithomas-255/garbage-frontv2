@@ -362,18 +362,55 @@ const PlotManagement = ({ refreshData }) => {
       </div>
 
       {/* Plot Form Modal */}
+      {/* Plot Form Modal - Compact */}
       {isModalOpen && (
-        <div className="modal-mobile">
-          <div className="modal-content-mobile">
-            <div className="sticky top-0 bg-white border-b p-4">
-              <h2 className="text-xl font-bold">
-                {editingPlot ? "Edit Plot" : "Add New Plot"}
-              </h2>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+          style={{ backdropFilter: "blur(4px)" }}
+        >
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
+            {/* Header */}
+            <div className="bg-green-600 px-5 py-3">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-white">
+                  {editingPlot ? "Edit Plot" : "Add Plot"}
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setEditingPlot(null);
+                    setFormData({
+                      name: "",
+                      locationId: "",
+                      expectedAmount: 0,
+                      paidAmount: 0,
+                      expenses: 0,
+                    });
+                  }}
+                  className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1 transition"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
-            <form onSubmit={handleSubmit} className="p-4">
-              <div className="space-y-4">
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="p-5">
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-bold mb-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Plot Name
                   </label>
                   <input
@@ -382,13 +419,14 @@ const PlotManagement = ({ refreshData }) => {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="input-mobile"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Enter plot name"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold mb-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Location
                   </label>
                   <select
@@ -396,7 +434,7 @@ const PlotManagement = ({ refreshData }) => {
                     onChange={(e) =>
                       setFormData({ ...formData, locationId: e.target.value })
                     }
-                    className="input-mobile"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     required
                   >
                     <option value="">Select Location</option>
@@ -409,8 +447,8 @@ const PlotManagement = ({ refreshData }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold mb-2">
-                    Expected Amount (KSh)
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Expected (KSh)
                   </label>
                   <input
                     type="number"
@@ -421,13 +459,14 @@ const PlotManagement = ({ refreshData }) => {
                         expectedAmount: parseFloat(e.target.value),
                       })
                     }
-                    className="input-mobile"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="0.00"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold mb-2">
-                    Paid Amount (KSh)
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Paid (KSh)
                   </label>
                   <input
                     type="number"
@@ -438,12 +477,13 @@ const PlotManagement = ({ refreshData }) => {
                         paidAmount: parseFloat(e.target.value),
                       })
                     }
-                    className="input-mobile"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="0.00"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold mb-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Expenses (KSh)
                   </label>
                   <input
@@ -455,12 +495,13 @@ const PlotManagement = ({ refreshData }) => {
                         expenses: parseFloat(e.target.value),
                       })
                     }
-                    className="input-mobile"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="0.00"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-2 mt-6 pt-4 border-t">
+              <div className="flex space-x-2 mt-5 pt-3 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => {
@@ -474,13 +515,13 @@ const PlotManagement = ({ refreshData }) => {
                       expenses: 0,
                     });
                   }}
-                  className="px-4 py-2 border rounded-lg"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg"
+                  className="flex-1 bg-green-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition"
                 >
                   {editingPlot ? "Update" : "Create"}
                 </button>
@@ -491,41 +532,101 @@ const PlotManagement = ({ refreshData }) => {
       )}
 
       {/* Add User Modal */}
+      {/* Add User Modal - Compact */}
       {showAddUserModal && (
-        <div className="modal-mobile">
-          <div className="modal-content-mobile">
-            <div className="sticky top-0 bg-white border-b p-4">
-              <h2 className="text-xl font-bold">
-                Add User to {selectedPlot?.name}
-              </h2>
-            </div>
-            <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
-              {getUsersNotInPlot().map((user) => (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+          style={{ backdropFilter: "blur(4px)" }}
+        >
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
+            {/* Header */}
+            <div className="bg-green-600 px-5 py-3">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-white">Add User</h2>
                 <button
-                  key={user._id}
-                  onClick={() => handleAddUserToPlot(user._id)}
-                  className="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition"
+                  onClick={() => {
+                    setShowAddUserModal(false);
+                    setSelectedPlot(null);
+                  }}
+                  className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1 transition"
                 >
-                  <p className="font-semibold">{user.name}</p>
-                  <p className="text-sm text-gray-600">{user.email}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Status: {user.paymentStatus}
-                  </p>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
                 </button>
-              ))}
-              {getUsersNotInPlot().length === 0 && (
-                <p className="text-gray-500 text-center py-4">
-                  No users available to add
-                </p>
+              </div>
+              <p className="text-green-100 text-xs mt-1">
+                Select user for {selectedPlot?.name}
+              </p>
+            </div>
+
+            {/* User List */}
+            <div className="max-h-64 overflow-y-auto">
+              {getUsersNotInPlot().length > 0 ? (
+                getUsersNotInPlot().map((user) => (
+                  <button
+                    key={user._id}
+                    onClick={() => handleAddUserToPlot(user._id)}
+                    className="w-full text-left px-5 py-3 border-b border-gray-100 hover:bg-gray-50 transition"
+                  >
+                    <p className="font-medium text-gray-800 text-sm">
+                      {user.name}
+                    </p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                    <span
+                      className={`inline-block text-xs px-2 py-0.5 rounded-full mt-1 ${
+                        user.paymentStatus === "paid"
+                          ? "bg-green-100 text-green-700"
+                          : user.paymentStatus === "partial"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {user.paymentStatus}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <div className="text-center py-8 px-5">
+                  <svg
+                    className="w-10 h-10 text-gray-400 mx-auto mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                  <p className="text-gray-500 text-sm">No users available</p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    All users are assigned
+                  </p>
+                </div>
               )}
             </div>
-            <div className="sticky bottom-0 bg-white border-t p-4">
+
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-gray-100 bg-gray-50">
               <button
                 onClick={() => {
                   setShowAddUserModal(false);
                   setSelectedPlot(null);
                 }}
-                className="w-full px-4 py-2 border rounded-lg"
+                className="w-full text-gray-600 text-sm font-medium py-1.5 hover:text-gray-800 transition"
               >
                 Close
               </button>
@@ -535,59 +636,140 @@ const PlotManagement = ({ refreshData }) => {
       )}
 
       {/* Payment Modal */}
+      {/* Payment Modal - Compact and Well-Structured */}
       {showPaymentModal && (
-        <div className="modal-mobile">
-          <div className="modal-content-mobile">
-            <div className="sticky top-0 bg-white border-b p-4">
-              <h2 className="text-xl font-bold">Add Payment</h2>
-            </div>
-            <div className="p-4 space-y-4">
-              <div>
-                <label className="block text-sm font-bold mb-2">
-                  User: {selectedUser?.name}
-                </label>
-                <label className="block text-sm font-bold mb-2">
-                  Plot: {selectedPlot?.name}
-                </label>
-                <label className="block text-sm font-bold mb-2">
-                  Amount (KSh)
-                </label>
-                <input
-                  type="number"
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(parseFloat(e.target.value))}
-                  className="input-mobile"
-                  placeholder="Enter amount"
-                  min="0"
-                  step="0.01"
-                  autoFocus
-                />
-                <p className="text-sm text-gray-500 mt-2">
-                  Current paid: KSh {selectedUser?.paidAmount || 0}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Status: {selectedUser?.paymentStatus}
-                </p>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+          style={{ backdropFilter: "blur(4px)" }}
+        >
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
+            {/* Header */}
+            <div className="bg-green-600 px-5 py-3">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-white">
+                  Add Payment
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setSelectedUser(null);
+                    setSelectedPlot(null);
+                    setPaymentAmount(0);
+                  }}
+                  className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1 transition"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
-            <div className="sticky bottom-0 bg-white border-t p-4 flex space-x-2">
-              <button
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  setSelectedUser(null);
-                  setSelectedPlot(null);
-                  setPaymentAmount(0);
-                }}
-                className="flex-1 px-4 py-2 border rounded-lg"
+
+            {/* Content */}
+            <div className="p-5">
+              {/* User & Plot Info */}
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-500">User:</span>
+                  <span className="font-medium text-gray-800">
+                    {selectedUser?.name}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Plot:</span>
+                  <span className="font-medium text-gray-800">
+                    {selectedPlot?.name}
+                  </span>
+                </div>
+              </div>
+
+              {/* Payment Status */}
+              <div
+                className={`rounded-lg p-3 mb-4 text-sm ${
+                  selectedUser?.paymentStatus === "paid"
+                    ? "bg-green-50 border border-green-200"
+                    : selectedUser?.paymentStatus === "partial"
+                      ? "bg-yellow-50 border border-yellow-200"
+                      : "bg-red-50 border border-red-200"
+                }`}
               >
-                Cancel
-              </button>
-              <button
-                onClick={handlePaymentSubmit}
-                className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg"
-              >
-                Add Payment
-              </button>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span
+                    className={`font-semibold ${
+                      selectedUser?.paymentStatus === "paid"
+                        ? "text-green-600"
+                        : selectedUser?.paymentStatus === "partial"
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                    }`}
+                  >
+                    {selectedUser?.paymentStatus?.toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-gray-600">Paid:</span>
+                  <span className="font-semibold">
+                    KSh {selectedUser?.paidAmount || 0}
+                  </span>
+                </div>
+              </div>
+
+              {/* Amount Input */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Amount (KSh)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                    KSh
+                  </span>
+                  <input
+                    type="number"
+                    value={paymentAmount}
+                    onChange={(e) =>
+                      setPaymentAmount(parseFloat(e.target.value))
+                    }
+                    className="w-full pl-12 pr-3 py-2 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setSelectedUser(null);
+                    setSelectedPlot(null);
+                    setPaymentAmount(0);
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePaymentSubmit}
+                  disabled={!paymentAmount || paymentAmount <= 0}
+                  className="flex-1 bg-green-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Add Payment
+                </button>
+              </div>
             </div>
           </div>
         </div>

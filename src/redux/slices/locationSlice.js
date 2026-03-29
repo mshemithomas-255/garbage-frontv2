@@ -3,14 +3,12 @@ import api from "../../utils/api";
 
 export const fetchLocations = createAsyncThunk(
   "locations/fetch",
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/api/locations");
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to fetch locations" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -20,11 +18,9 @@ export const createLocation = createAsyncThunk(
   async (locationData, { rejectWithValue }) => {
     try {
       const response = await api.post("/api/locations", locationData);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to create location" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -34,11 +30,9 @@ export const updateLocation = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await api.put(`/api/locations/${id}`, data);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to update location" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -50,9 +44,7 @@ export const deleteLocation = createAsyncThunk(
       await api.delete(`/api/locations/${id}`);
       return id;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to delete location" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -76,7 +68,7 @@ const locationSlice = createSlice({
       })
       .addCase(fetchLocations.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.msg || action.error.message;
+        state.error = action.payload;
       })
       .addCase(createLocation.fulfilled, (state, action) => {
         state.locations.push(action.payload);

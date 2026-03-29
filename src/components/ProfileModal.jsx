@@ -10,8 +10,13 @@ import {
   FaUserCircle,
   FaEye,
   FaEyeSlash,
+  FaShieldAlt,
 } from "react-icons/fa";
-import { updateProfile, changePassword } from "../redux/slices/authSlice";
+import {
+  updateProfile,
+  changePassword,
+  setSecretWord,
+} from "../redux/slices/authSlice";
 import toast from "react-hot-toast";
 
 const ProfileModal = ({ isOpen, onClose }) => {
@@ -25,14 +30,24 @@ const ProfileModal = ({ isOpen, onClose }) => {
     newPassword: "",
     confirmPassword: "",
   });
+  const [secretWordData, setSecretWordData] = useState({
+    secretWord: "",
+    confirmSecretWord: "",
+  });
   const [passwordErrors, setPasswordErrors] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+  const [secretWordErrors, setSecretWordErrors] = useState({
+    secretWord: "",
+    confirmSecretWord: "",
+  });
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSecretWord, setShowSecretWord] = useState(false);
+  const [showConfirmSecretWord, setShowConfirmSecretWord] = useState(false);
   const [loading, setLoading] = useState(false);
   const modalRef = useRef(null);
 
@@ -45,16 +60,24 @@ const ProfileModal = ({ isOpen, onClose }) => {
         name: user.name || "",
         email: user.email || "",
       });
-      // Reset password form when modal opens
+      // Reset forms when modal opens
       setPasswordData({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
+      setSecretWordData({
+        secretWord: "",
+        confirmSecretWord: "",
+      });
       setPasswordErrors({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
+      });
+      setSecretWordErrors({
+        secretWord: "",
+        confirmSecretWord: "",
       });
     }
   }, [user, isOpen]);
@@ -63,7 +86,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
-        // Don't close if clicking outside
         return;
       }
     };
@@ -134,6 +156,34 @@ const ProfileModal = ({ isOpen, onClose }) => {
     return isValid;
   };
 
+  // Validate secret word fields
+  const validateSecretWordForm = () => {
+    let isValid = true;
+    const errors = {
+      secretWord: "",
+      confirmSecretWord: "",
+    };
+
+    if (!secretWordData.secretWord) {
+      errors.secretWord = "Secret word is required";
+      isValid = false;
+    } else if (secretWordData.secretWord.length < 4) {
+      errors.secretWord = "Secret word must be at least 4 characters";
+      isValid = false;
+    }
+
+    if (!secretWordData.confirmSecretWord) {
+      errors.confirmSecretWord = "Please confirm your secret word";
+      isValid = false;
+    } else if (secretWordData.secretWord !== secretWordData.confirmSecretWord) {
+      errors.confirmSecretWord = "Secret words do not match";
+      isValid = false;
+    }
+
+    setSecretWordErrors(errors);
+    return isValid;
+  };
+
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     if (!profileData.name.trim()) {
@@ -161,7 +211,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
 
-    // Validate form
     if (!validatePasswordForm()) {
       return;
     }
@@ -215,6 +264,47 @@ const ProfileModal = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleSetSecretWord = async (e) => {
+    e.preventDefault();
+
+    if (!validateSecretWordForm()) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await dispatch(
+        setSecretWord({
+          secretWord: secretWordData.secretWord,
+          confirmSecretWord: secretWordData.confirmSecretWord,
+        }),
+      ).unwrap();
+
+      toast.success(
+        "Secret word set successfully! You can now use it for password recovery.",
+      );
+
+      // Reset form
+      setSecretWordData({
+        secretWord: "",
+        confirmSecretWord: "",
+      });
+      setSecretWordErrors({
+        secretWord: "",
+        confirmSecretWord: "",
+      });
+
+      // Close modal after successful set
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (error) {
+      toast.error(error.msg || "Failed to set secret word");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Real-time password validation
   const handlePasswordInputChange = (field, value) => {
     setPasswordData({
@@ -262,6 +352,51 @@ const ProfileModal = ({ isOpen, onClose }) => {
     }
   };
 
+  // Real-time secret word validation
+  const handleSecretWordInputChange = (field, value) => {
+    setSecretWordData({
+      ...secretWordData,
+      [field]: value,
+    });
+
+    // Clear error when user starts typing
+    if (secretWordErrors[field]) {
+      setSecretWordErrors({
+        ...secretWordErrors,
+        [field]: "",
+      });
+    }
+
+    // Real-time confirm secret word validation
+    if (
+      field === "confirmSecretWord" &&
+      secretWordData.secretWord &&
+      value !== secretWordData.secretWord
+    ) {
+      setSecretWordErrors({
+        ...secretWordErrors,
+        confirmSecretWord: "Secret words do not match",
+      });
+    } else if (
+      field === "secretWord" &&
+      secretWordData.confirmSecretWord &&
+      value !== secretWordData.confirmSecretWord
+    ) {
+      setSecretWordErrors({
+        ...secretWordErrors,
+        confirmSecretWord: "Secret words do not match",
+      });
+    } else if (
+      value === secretWordData.secretWord ||
+      (field === "secretWord" && value === secretWordData.confirmSecretWord)
+    ) {
+      setSecretWordErrors({
+        ...secretWordErrors,
+        confirmSecretWord: "",
+      });
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -299,7 +434,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Tabs with better styling */}
+        {/* Tabs */}
         <div className="flex border-b border-gray-200 bg-gray-50">
           <button
             onClick={() => setActiveTab("profile")}
@@ -323,14 +458,26 @@ const ProfileModal = ({ isOpen, onClose }) => {
             <FaKey className="inline mr-2 text-sm" />
             Security
           </button>
+          <button
+            onClick={() => setActiveTab("secret")}
+            className={`flex-1 py-3 px-4 text-center font-medium transition-all duration-200 ${
+              activeTab === "secret"
+                ? "text-green-600 border-b-2 border-green-600 bg-white"
+                : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+            }`}
+          >
+            <FaShieldAlt className="inline mr-2 text-sm" />
+            Secret Word
+          </button>
         </div>
 
-        {/* Content with improved spacing */}
+        {/* Content */}
         <div
           className="p-6 overflow-y-auto"
           style={{ maxHeight: "calc(90vh - 140px)" }}
         >
-          {activeTab === "profile" ? (
+          {/* Personal Info Tab */}
+          {activeTab === "profile" && (
             <form onSubmit={handleProfileUpdate} className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -377,7 +524,10 @@ const ProfileModal = ({ isOpen, onClose }) => {
                 </button>
               </div>
             </form>
-          ) : (
+          )}
+
+          {/* Security/Password Tab */}
+          {activeTab === "password" && (
             <form onSubmit={handlePasswordChange} className="space-y-5">
               {/* Current Password */}
               <div>
@@ -504,6 +654,131 @@ const ProfileModal = ({ isOpen, onClose }) => {
                 </button>
               </div>
             </form>
+          )}
+
+          {/* Secret Word Tab */}
+          {activeTab === "secret" && (
+            <div className="space-y-5">
+              {user?.secretWordSet ? (
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center mb-2">
+                    <FaShieldAlt className="text-green-600 mr-2" />
+                    <h3 className="font-semibold text-green-800">
+                      Secret Word Set
+                    </h3>
+                  </div>
+                  <p className="text-sm text-green-700">
+                    Your secret word is already set. You can use it to recover
+                    your password if needed.
+                  </p>
+                  <p className="text-xs text-green-600 mt-2">
+                    <strong>Note:</strong> For security reasons, you cannot view
+                    or change your secret word once set.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSetSecretWord} className="space-y-5">
+                  <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200 mb-4">
+                    <p className="text-sm text-yellow-800">
+                      <strong>⚠️ Secret word not set!</strong> Setting a secret
+                      word allows you to recover your password if you forget it.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <FaShieldAlt className="inline mr-2 text-green-600" />
+                      Secret Word
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showSecretWord ? "text" : "password"}
+                        value={secretWordData.secretWord}
+                        onChange={(e) =>
+                          handleSecretWordInputChange(
+                            "secretWord",
+                            e.target.value,
+                          )
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${
+                          secretWordErrors.secretWord
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="Enter a secret word (min 4 characters)"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSecretWord(!showSecretWord)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showSecretWord ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                    {secretWordErrors.secretWord && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {secretWordErrors.secretWord}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Choose a secret word that you'll remember. Use it to
+                      recover your password if forgotten.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Confirm Secret Word
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmSecretWord ? "text" : "password"}
+                        value={secretWordData.confirmSecretWord}
+                        onChange={(e) =>
+                          handleSecretWordInputChange(
+                            "confirmSecretWord",
+                            e.target.value,
+                          )
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${
+                          secretWordErrors.confirmSecretWord
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="Confirm your secret word"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmSecretWord(!showConfirmSecretWord)
+                        }
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showConfirmSecretWord ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                    {secretWordErrors.confirmSecretWord && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {secretWordErrors.confirmSecretWord}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="pt-4">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                    >
+                      <FaShieldAlt className="inline mr-2" />
+                      {loading ? "Setting..." : "Set Secret Word"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           )}
         </div>
 

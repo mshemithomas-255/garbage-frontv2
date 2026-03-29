@@ -10,7 +10,8 @@ export const login = createAsyncThunk(
       localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { msg: "Login failed" });
+      // Error toast is already shown by interceptor
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -31,15 +32,61 @@ export const changePassword = createAsyncThunk(
         { currentPassword, newPassword },
         { headers: { "x-auth-token": token } },
       );
-      // Update token in localStorage
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;
     } catch (error) {
-      console.error("Change password error:", error.response?.data);
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to change password" },
+      return rejectWithValue(error.message);
+    }
+  },
+);
+
+export const setSecretWord = createAsyncThunk(
+  "auth/setSecretWord",
+  async ({ secretWord, confirmSecretWord }, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token;
+      const response = await api.post(
+        "/api/auth/set-secret-word",
+        { secretWord, confirmSecretWord },
+        { headers: { "x-auth-token": token } },
       );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  },
+);
+
+export const verifySecretWord = createAsyncThunk(
+  "auth/verifySecretWord",
+  async ({ email, secretWord }, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/api/auth/verify-secret-word", {
+        email,
+        secretWord,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  },
+);
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ resetToken, newPassword, confirmPassword }, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/api/auth/reset-password", {
+        resetToken,
+        newPassword,
+        confirmPassword,
+      });
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -54,14 +101,11 @@ export const updateProfile = createAsyncThunk(
         { name, email },
         { headers: { "x-auth-token": token } },
       );
-      // Update user data in localStorage
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to update profile" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -88,7 +132,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.msg || "Login failed";
+        state.error = action.payload;
       })
       .addCase(logout.fulfilled, (state) => {
         state.token = null;
@@ -105,20 +149,17 @@ const authSlice = createSlice({
       })
       .addCase(changePassword.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.msg || "Failed to change password";
+        state.error = action.payload;
       })
-      .addCase(updateProfile.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      .addCase(setSecretWord.fulfilled, (state, action) => {
+        if (state.user) {
+          state.user.secretWordSet = true;
+          localStorage.setItem("user", JSON.stringify(state.user));
+        }
       })
-      .addCase(updateProfile.fulfilled, (state, action) => {
-        state.loading = false;
+      .addCase(resetPassword.fulfilled, (state, action) => {
         state.token = action.payload.token;
         state.user = action.payload.user;
-      })
-      .addCase(updateProfile.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload?.msg || "Failed to update profile";
       });
   },
 });
