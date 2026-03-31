@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createUser,
@@ -16,8 +16,105 @@ import {
   FaSearch,
   FaPhone,
   FaEnvelope,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import toast from "react-hot-toast";
+
+// Constants
+const PAYMENT_STATUS = {
+  paid: {
+    label: "Paid",
+    color: "bg-green-100 text-green-800",
+    bgRow: "bg-green-50",
+  },
+  partial: {
+    label: "Partial",
+    color: "bg-yellow-100 text-yellow-800",
+    bgRow: "bg-yellow-50",
+  },
+  pending: {
+    label: "Pending",
+    color: "bg-red-100 text-red-800",
+    bgRow: "bg-red-50",
+  },
+  default: {
+    label: "Pending",
+    color: "bg-gray-100 text-gray-800",
+    bgRow: "bg-gray-50",
+  },
+};
+
+// Helper Components
+const ModalHeader = ({ title, onClose }) => (
+  <div className="bg-green-600 px-4 sm:px-5 py-3">
+    <div className="flex justify-between items-center">
+      <h2 className="text-base sm:text-lg font-semibold text-white">{title}</h2>
+      <button
+        onClick={onClose}
+        className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1 transition"
+      >
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+);
+
+const FormInput = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  required = false,
+}) => (
+  <div>
+    <label className="block text-xs font-medium text-gray-700 mb-1">
+      {label}
+    </label>
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+      placeholder={placeholder}
+      required={required}
+    />
+  </div>
+);
+
+const FormSelect = ({ label, value, onChange, options, required = false }) => (
+  <div>
+    <label className="block text-xs font-medium text-gray-700 mb-1">
+      {label}
+    </label>
+    <select
+      value={value}
+      onChange={onChange}
+      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+      required={required}
+    >
+      <option value="">Select {label}</option>
+      {options.map((option) => (
+        <option key={option._id} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </div>
+);
 
 const UserManagement = ({ refreshData }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,11 +139,38 @@ const UserManagement = ({ refreshData }) => {
     dispatch(fetchPlots());
   }, [dispatch]);
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phone?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // Filter users based on search term
+  const filteredUsers = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    return users.filter(
+      (user) =>
+        user.name?.toLowerCase().includes(term) ||
+        user.phone?.toLowerCase().includes(term) ||
+        user.email?.toLowerCase().includes(term),
+    );
+  }, [users, searchTerm]);
+
+  const getPaymentColor = (status) =>
+    PAYMENT_STATUS[status]?.color || PAYMENT_STATUS.default.color;
+  const getPaymentLabel = (status) =>
+    PAYMENT_STATUS[status]?.label || PAYMENT_STATUS.default.label;
+  const getRowColor = (status) =>
+    PAYMENT_STATUS[status]?.bgRow || PAYMENT_STATUS.default.bgRow;
+
+  const getPlotName = (plotId) => {
+    const plot = plots.find((p) => p._id === plotId);
+    return plot ? plot.name : "Not Assigned";
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      password: "",
+      role: "user",
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,13 +187,7 @@ const UserManagement = ({ refreshData }) => {
       await refreshData();
       setIsModalOpen(false);
       setEditingUser(null);
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        password: "",
-        role: "user",
-      });
+      resetForm();
     } catch (error) {
       toast.error(error.message || "Operation failed");
     }
@@ -106,124 +224,213 @@ const UserManagement = ({ refreshData }) => {
   };
 
   const handlePaymentSubmit = async () => {
-    if (paymentAmount > 0) {
-      try {
-        await dispatch(
-          markUserPaid({ id: selectedUser._id, amount: paymentAmount }),
-        ).unwrap();
-        toast.success(`Payment of KSh ${paymentAmount} added successfully!`);
-        await refreshData();
-        setShowPaymentModal(false);
-        setSelectedUser(null);
-        setPaymentAmount(0);
-      } catch (error) {
-        toast.error(error.message || "Failed to add payment");
-      }
-    } else {
+    if (paymentAmount <= 0) {
       toast.error("Please enter a valid amount");
+      return;
+    }
+    try {
+      await dispatch(
+        markUserPaid({ id: selectedUser._id, amount: paymentAmount }),
+      ).unwrap();
+      toast.success(`Payment of KSh ${paymentAmount} added successfully!`);
+      await refreshData();
+      setShowPaymentModal(false);
+      setSelectedUser(null);
+      setPaymentAmount(0);
+    } catch (error) {
+      toast.error(error.message || "Failed to add payment");
     }
   };
 
-  const getPlotName = (plotId) => {
-    const plot = plots.find((p) => p._id === plotId);
-    return plot ? plot.name : "Not Assigned";
-  };
+  // User Row Component - Mobile Optimized with Color Coding
+  const UserRow = ({ user }) => {
+    const rowBgColor = getRowColor(user.paymentStatus);
 
-  const getPaymentColor = (status) => {
-    switch (status) {
-      case "paid":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-red-100 text-red-800";
-      case "partial":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+    return (
+      <div
+        className={`${rowBgColor} rounded-lg mb-2 p-3 border transition-all duration-200`}
+      >
+        {/* Desktop View - Grid Layout */}
+        <div className="hidden md:grid md:grid-cols-12 md:gap-3 md:items-center">
+          <div className="col-span-3">
+            <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
+          </div>
+          <div className="col-span-3">
+            <div className="flex items-center">
+              <FaPhone className="text-gray-400 text-xs mr-1.5" />
+              <span className="text-sm text-gray-700">{user.phone}</span>
+            </div>
+          </div>
+          <div className="col-span-3">
+            <div className="flex items-center">
+              <FaEnvelope className="text-gray-400 text-xs mr-1.5" />
+              <span className="text-xs text-gray-600 truncate">
+                {user.email}
+              </span>
+            </div>
+          </div>
+          <div className="col-span-2">
+            <div className="flex items-center">
+              <FaMapMarkerAlt className="text-gray-400 text-xs mr-1.5" />
+              <span className="text-sm text-gray-700 truncate">
+                {getPlotName(user.plotId)}
+              </span>
+            </div>
+          </div>
+          <div className="col-span-1 flex justify-center space-x-1">
+            <button
+              onClick={() => handleMarkPaid(user)}
+              className="p-1.5 text-green-500 hover:text-green-600 hover:bg-green-50 rounded transition"
+              title="Add Payment"
+            >
+              <FaMoneyBillWave />
+            </button>
+            <button
+              onClick={() => handleEdit(user)}
+              className="p-1.5 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+              title="Edit User"
+            >
+              <FaEdit />
+            </button>
+            <button
+              onClick={() => handleDelete(user._id)}
+              className="p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition"
+              title="Delete User"
+            >
+              <FaTrash />
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile View - Card Layout */}
+        <div className="md:hidden space-y-2">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="font-semibold text-gray-800 text-base">
+                {user.name}
+              </p>
+              <div className="flex items-center mt-1">
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full ${getPaymentColor(user.paymentStatus)}`}
+                >
+                  {getPaymentLabel(user.paymentStatus)}
+                </span>
+              </div>
+            </div>
+            <div className="flex space-x-1">
+              <button
+                onClick={() => handleMarkPaid(user)}
+                className="p-2 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                title="Add Payment"
+              >
+                <FaMoneyBillWave className="text-base" />
+              </button>
+              <button
+                onClick={() => handleEdit(user)}
+                className="p-2 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                title="Edit User"
+              >
+                <FaEdit className="text-base" />
+              </button>
+              <button
+                onClick={() => handleDelete(user._id)}
+                className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                title="Delete User"
+              >
+                <FaTrash className="text-base" />
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="flex items-center">
+              <FaPhone className="text-gray-400 text-xs mr-1.5" />
+              <span className="text-gray-700">{user.phone}</span>
+            </div>
+            <div className="flex items-center">
+              <FaEnvelope className="text-gray-400 text-xs mr-1.5" />
+              <span className="text-gray-500 text-xs truncate">
+                {user.email}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center pt-1 border-t border-gray-100">
+            <div className="flex items-center">
+              <FaMapMarkerAlt className="text-gray-400 text-xs mr-1.5" />
+              <span className="text-xs text-gray-600">Plot:</span>
+              <span className="text-xs text-gray-700 ml-1 truncate">
+                {getPlotName(user.plotId)}
+              </span>
+            </div>
+            <p className="text-sm font-bold text-green-600">
+              KSh {user.paidAmount || 0}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-4 md:space-y-6 pb-20 md:pb-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sticky top-0 bg-gray-100 z-10 py-2">
+        <h1 className="text-xl md:text-3xl font-bold text-gray-800">
           User Management
         </h1>
         <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
-          <div className="relative">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <div className="relative flex-1 sm:flex-none">
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
             <input
               type="text"
-              placeholder="Search by name or phone..."
+              placeholder="Search by name, phone, or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-mobile pl-10"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="btn-primary whitespace-nowrap"
+            className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center text-sm font-medium whitespace-nowrap"
           >
-            <FaPlus className="mr-2" /> Add User
+            <FaPlus className="mr-1 text-xs" /> Add User
           </button>
         </div>
       </div>
 
       {/* Users List */}
-      <div className="space-y-3">
-        {filteredUsers.map((user) => (
-          <div key={user._id} className="card-mobile">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h3 className="font-semibold text-base">{user.name}</h3>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-1">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <FaPhone className="mr-1 text-xs" />
-                    <span>{user.phone}</span>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <FaEnvelope className="mr-1 text-xs" />
-                    <span className="text-xs">{user.email}</span>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${getPaymentColor(user.paymentStatus)}`}
-                  >
-                    {user.paymentStatus}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    Plot: {getPlotName(user.plotId)}
-                  </span>
-                  <span className="text-xs font-semibold text-green-600">
-                    Paid: KSh {user.paidAmount || 0}
-                  </span>
-                </div>
-              </div>
-              <div className="flex space-x-1">
-                <button
-                  onClick={() => handleMarkPaid(user)}
-                  className="p-2 text-green-500 hover:text-green-600"
-                  title="Add Payment"
-                >
-                  <FaMoneyBillWave />
-                </button>
-                <button
-                  onClick={() => handleEdit(user)}
-                  className="p-2 text-blue-500 hover:text-blue-600"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => handleDelete(user._id)}
-                  className="p-2 text-red-500 hover:text-red-600"
-                >
-                  <FaTrash />
-                </button>
-              </div>
+      <div>
+        {filteredUsers.length > 0 ? (
+          <div>
+            {/* Desktop Column Headers */}
+            <div className="hidden md:grid md:grid-cols-12 md:gap-3 mb-2 px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-600">
+              <div className="col-span-3">User Name</div>
+              <div className="col-span-3">Mobile Number</div>
+              <div className="col-span-3">Email</div>
+              <div className="col-span-2">Plot Assigned</div>
+              <div className="col-span-1 text-center">Actions</div>
+            </div>
+            <div className="space-y-2">
+              {filteredUsers.map((user) => (
+                <UserRow key={user._id} user={user} />
+              ))}
             </div>
           </div>
-        ))}
+        ) : (
+          <div className="text-center py-8 sm:py-12 bg-white rounded-lg shadow">
+            <FaUsers className="text-gray-300 text-3xl sm:text-4xl mx-auto mb-3" />
+            <p className="text-gray-500 text-sm">No users found</p>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="mt-2 text-green-600 text-sm hover:text-green-700 font-medium"
+              >
+                Clear search
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* User Form Modal */}
@@ -233,110 +440,58 @@ const UserManagement = ({ refreshData }) => {
           style={{ backdropFilter: "blur(4px)" }}
         >
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
-            <div className="bg-green-600 px-5 py-3">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-white">
-                  {editingUser ? "Edit User" : "Add New User"}
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    setEditingUser(null);
-                    setFormData({
-                      name: "",
-                      email: "",
-                      phone: "",
-                      password: "",
-                      role: "user",
-                    });
-                  }}
-                  className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-5">
+            <ModalHeader
+              title={editingUser ? "Edit User" : "Add New User"}
+              onClose={() => {
+                setIsModalOpen(false);
+                setEditingUser(null);
+                resetForm();
+              }}
+            />
+            <form onSubmit={handleSubmit} className="p-4 sm:p-5">
               <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="e.g., 0712345678"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required={!editingUser}
-                    placeholder={
-                      editingUser
-                        ? "Leave blank to keep current"
-                        : "Min 6 characters"
-                    }
-                  />
-                </div>
-
+                <FormInput
+                  label="Full Name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  placeholder="Enter full name"
+                  required
+                />
+                <FormInput
+                  label="Phone Number"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  placeholder="e.g., 0712345678"
+                  required
+                />
+                <FormInput
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  placeholder="Enter email address"
+                  required
+                />
+                <FormInput
+                  label="Password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  placeholder={
+                    editingUser
+                      ? "Leave blank to keep current"
+                      : "Min 6 characters"
+                  }
+                  required={!editingUser}
+                />
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     Role
@@ -353,20 +508,13 @@ const UserManagement = ({ refreshData }) => {
                   </select>
                 </div>
               </div>
-
               <div className="flex space-x-2 mt-5 pt-3 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => {
                     setIsModalOpen(false);
                     setEditingUser(null);
-                    setFormData({
-                      name: "",
-                      email: "",
-                      phone: "",
-                      password: "",
-                      role: "user",
-                    });
+                    resetForm();
                   }}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50"
                 >
@@ -391,37 +539,15 @@ const UserManagement = ({ refreshData }) => {
           style={{ backdropFilter: "blur(4px)" }}
         >
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
-            <div className="bg-green-600 px-5 py-3">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-white">
-                  Add Payment
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowPaymentModal(false);
-                    setSelectedUser(null);
-                    setPaymentAmount(0);
-                  }}
-                  className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div className="p-5">
+            <ModalHeader
+              title="Add Payment"
+              onClose={() => {
+                setShowPaymentModal(false);
+                setSelectedUser(null);
+                setPaymentAmount(0);
+              }}
+            />
+            <div className="p-4 sm:p-5">
               <div className="bg-gray-50 rounded-lg p-3 mb-4">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-gray-500">User:</span>
@@ -430,6 +556,12 @@ const UserManagement = ({ refreshData }) => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Phone:</span>
                   <span className="font-medium">{selectedUser?.phone}</span>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-500">Plot:</span>
+                  <span className="font-medium">
+                    {getPlotName(selectedUser?.plotId)}
+                  </span>
                 </div>
               </div>
 
