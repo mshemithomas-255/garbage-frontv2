@@ -17,6 +17,7 @@ import {
   FaPhone,
   FaEnvelope,
   FaMapMarkerAlt,
+  FaUsers,
 } from "react-icons/fa";
 import toast from "react-hot-toast";
 
