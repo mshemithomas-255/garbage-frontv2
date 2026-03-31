@@ -6,11 +6,9 @@ export const fetchUsers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/api/users");
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to fetch users" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -20,11 +18,9 @@ export const createUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await api.post("/api/users", userData);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to create user" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -34,11 +30,9 @@ export const updateUser = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await api.put(`/api/users/${id}`, data);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to update user" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -50,9 +44,7 @@ export const deleteUser = createAsyncThunk(
       await api.delete(`/api/users/${id}`);
       return id;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to delete user" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -62,11 +54,9 @@ export const markUserPaid = createAsyncThunk(
   async ({ id, amount }, { rejectWithValue }) => {
     try {
       const response = await api.put(`/api/users/${id}/pay`, { amount });
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to mark user as paid" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -90,7 +80,7 @@ const userSlice = createSlice({
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.msg || action.error.message;
+        state.error = action.payload;
       })
       .addCase(createUser.fulfilled, (state, action) => {
         state.users.push(action.payload);

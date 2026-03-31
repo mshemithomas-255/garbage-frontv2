@@ -6,6 +6,8 @@ import {
   FaCalendarCheck,
   FaTrash,
   FaUserCircle,
+  FaPhone,
+  FaEnvelope,
 } from "react-icons/fa";
 import { fetchUsers } from "../redux/slices/userSlice";
 import { fetchPlots } from "../redux/slices/plotSlice";
@@ -87,6 +89,30 @@ const UserDashboard = () => {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+        {/* User Info Card */}
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-3">My Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex items-center">
+              <FaUserCircle className="text-gray-400 mr-2" />
+              <span className="text-gray-600">Name:</span>
+              <span className="ml-2 font-medium">{currentUser?.name}</span>
+            </div>
+            <div className="flex items-center">
+              <FaPhone className="text-gray-400 mr-2" />
+              <span className="text-gray-600">Phone:</span>
+              <span className="ml-2 font-medium">{currentUser?.phone}</span>
+            </div>
+            <div className="flex items-center">
+              <FaEnvelope className="text-gray-400 mr-2" />
+              <span className="text-gray-600">Email:</span>
+              <span className="ml-2 font-medium text-sm">
+                {currentUser?.email}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center">

@@ -11,6 +11,7 @@ import {
   FaEye,
   FaEyeSlash,
   FaShieldAlt,
+  FaPhone,
 } from "react-icons/fa";
 import {
   updateProfile,
@@ -24,6 +25,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
+    phone: "",
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -59,8 +61,8 @@ const ProfileModal = ({ isOpen, onClose }) => {
       setProfileData({
         name: user.name || "",
         email: user.email || "",
+        phone: user.phone || "",
       });
-      // Reset forms when modal opens
       setPasswordData({
         currentPassword: "",
         newPassword: "",
@@ -197,12 +199,13 @@ const ProfileModal = ({ isOpen, onClose }) => {
         updateProfile({
           name: profileData.name,
           email: profileData.email,
+          phone: profileData.phone,
         }),
       ).unwrap();
       toast.success("Profile updated successfully!");
       onClose();
     } catch (error) {
-      toast.error(error.msg || "Failed to update profile");
+      toast.error(error.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -226,7 +229,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
 
       toast.success("Password changed successfully!");
 
-      // Reset form
       setPasswordData({
         currentPassword: "",
         newPassword: "",
@@ -238,26 +240,24 @@ const ProfileModal = ({ isOpen, onClose }) => {
         confirmPassword: "",
       });
 
-      // Close modal after successful change
       setTimeout(() => {
         onClose();
       }, 1500);
     } catch (error) {
-      console.error("Password change error:", error);
-      if (error.msg === "Current password is incorrect") {
+      if (error.message === "Current password is incorrect") {
         setPasswordErrors({
           ...passwordErrors,
           currentPassword: "Current password is incorrect",
         });
       } else if (
-        error.msg === "New password must be different from current password"
+        error.message === "New password must be different from current password"
       ) {
         setPasswordErrors({
           ...passwordErrors,
           newPassword: "New password must be different from current password",
         });
       } else {
-        toast.error(error.msg || "Failed to change password");
+        toast.error(error.message || "Failed to change password");
       }
     } finally {
       setLoading(false);
@@ -280,11 +280,8 @@ const ProfileModal = ({ isOpen, onClose }) => {
         }),
       ).unwrap();
 
-      toast.success(
-        "Secret word set successfully! You can now use it for password recovery.",
-      );
+      toast.success("Secret word set successfully!");
 
-      // Reset form
       setSecretWordData({
         secretWord: "",
         confirmSecretWord: "",
@@ -294,12 +291,11 @@ const ProfileModal = ({ isOpen, onClose }) => {
         confirmSecretWord: "",
       });
 
-      // Close modal after successful set
       setTimeout(() => {
         onClose();
       }, 1500);
     } catch (error) {
-      toast.error(error.msg || "Failed to set secret word");
+      toast.error(error.message || "Failed to set secret word");
     } finally {
       setLoading(false);
     }
@@ -312,7 +308,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
       [field]: value,
     });
 
-    // Clear error when user starts typing
     if (passwordErrors[field]) {
       setPasswordErrors({
         ...passwordErrors,
@@ -320,7 +315,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
       });
     }
 
-    // Real-time confirm password validation
     if (field === "confirmPassword" || field === "newPassword") {
       if (
         field === "newPassword" &&
@@ -359,7 +353,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
       [field]: value,
     });
 
-    // Clear error when user starts typing
     if (secretWordErrors[field]) {
       setSecretWordErrors({
         ...secretWordErrors,
@@ -367,7 +360,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
       });
     }
 
-    // Real-time confirm secret word validation
     if (
       field === "confirmSecretWord" &&
       secretWordData.secretWord &&
@@ -406,30 +398,25 @@ const ProfileModal = ({ isOpen, onClose }) => {
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate-fade-in"
-        style={{ maxHeight: "90vh" }}
+        className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-auto overflow-hidden"
       >
-        {/* Header with gradient background */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-5">
+        {/* Header */}
+        <div className="bg-green-600 px-5 py-3">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="bg-white bg-opacity-20 rounded-full p-2">
-                <FaUserCircle className="text-2xl text-white" />
-              </div>
+            <div className="flex items-center space-x-2">
+              <FaUserCircle className="text-white text-xl" />
               <div>
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="text-lg font-semibold text-white">
                   Profile Settings
                 </h2>
-                <p className="text-green-100 text-sm">
-                  Manage your account information
-                </p>
+                <p className="text-green-100 text-xs">Manage your account</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all duration-200"
+              className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1 transition"
             >
-              <FaTimes className="text-xl" />
+              <FaTimes className="text-sm" />
             </button>
           </div>
         </div>
@@ -438,50 +425,47 @@ const ProfileModal = ({ isOpen, onClose }) => {
         <div className="flex border-b border-gray-200 bg-gray-50">
           <button
             onClick={() => setActiveTab("profile")}
-            className={`flex-1 py-3 px-4 text-center font-medium transition-all duration-200 ${
+            className={`flex-1 py-2 text-center text-sm font-medium transition ${
               activeTab === "profile"
                 ? "text-green-600 border-b-2 border-green-600 bg-white"
-                : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                : "text-gray-600 hover:text-gray-800"
             }`}
           >
-            <FaUser className="inline mr-2 text-sm" />
-            Personal Info
+            <FaUser className="inline mr-1 text-xs" />
+            Profile
           </button>
           <button
             onClick={() => setActiveTab("password")}
-            className={`flex-1 py-3 px-4 text-center font-medium transition-all duration-200 ${
+            className={`flex-1 py-2 text-center text-sm font-medium transition ${
               activeTab === "password"
                 ? "text-green-600 border-b-2 border-green-600 bg-white"
-                : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                : "text-gray-600 hover:text-gray-800"
             }`}
           >
-            <FaKey className="inline mr-2 text-sm" />
+            <FaKey className="inline mr-1 text-xs" />
             Security
           </button>
           <button
             onClick={() => setActiveTab("secret")}
-            className={`flex-1 py-3 px-4 text-center font-medium transition-all duration-200 ${
+            className={`flex-1 py-2 text-center text-sm font-medium transition ${
               activeTab === "secret"
                 ? "text-green-600 border-b-2 border-green-600 bg-white"
-                : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                : "text-gray-600 hover:text-gray-800"
             }`}
           >
-            <FaShieldAlt className="inline mr-2 text-sm" />
-            Secret Word
+            <FaShieldAlt className="inline mr-1 text-xs" />
+            Secret
           </button>
         </div>
 
         {/* Content */}
-        <div
-          className="p-6 overflow-y-auto"
-          style={{ maxHeight: "calc(90vh - 140px)" }}
-        >
-          {/* Personal Info Tab */}
+        <div className="p-5">
+          {/* Profile Tab */}
           {activeTab === "profile" && (
-            <form onSubmit={handleProfileUpdate} className="space-y-5">
+            <form onSubmit={handleProfileUpdate} className="space-y-3">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <FaUser className="inline mr-2 text-green-600" />
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <FaUser className="inline mr-1 text-green-600 text-xs" />
                   Full Name
                 </label>
                 <input
@@ -490,15 +474,31 @@ const ProfileModal = ({ isOpen, onClose }) => {
                   onChange={(e) =>
                     setProfileData({ ...profileData, name: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter your full name"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <FaEnvelope className="inline mr-2 text-green-600" />
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <FaPhone className="inline mr-1 text-green-600 text-xs" />
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={profileData.phone}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, phone: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g., 0712345678"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <FaEnvelope className="inline mr-1 text-green-600 text-xs" />
                   Email Address
                 </label>
                 <input
@@ -507,31 +507,29 @@ const ProfileModal = ({ isOpen, onClose }) => {
                   onChange={(e) =>
                     setProfileData({ ...profileData, email: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter your email address"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                 />
               </div>
 
-              <div className="pt-4">
+              <div className="pt-2">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                  className="w-full bg-green-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
                 >
-                  <FaSave className="inline mr-2" />
+                  <FaSave className="inline mr-1" />
                   {loading ? "Updating..." : "Save Changes"}
                 </button>
               </div>
             </form>
           )}
 
-          {/* Security/Password Tab */}
+          {/* Password Tab */}
           {activeTab === "password" && (
-            <form onSubmit={handlePasswordChange} className="space-y-5">
-              {/* Current Password */}
+            <form onSubmit={handlePasswordChange} className="space-y-3">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Current Password
                 </label>
                 <div className="relative">
@@ -544,7 +542,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
                         e.target.value,
                       )
                     }
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${
+                    className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
                       passwordErrors.currentPassword
                         ? "border-red-500"
                         : "border-gray-300"
@@ -555,9 +553,13 @@ const ProfileModal = ({ isOpen, onClose }) => {
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
                   >
-                    {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                    {showCurrentPassword ? (
+                      <FaEyeSlash className="text-sm" />
+                    ) : (
+                      <FaEye className="text-sm" />
+                    )}
                   </button>
                 </div>
                 {passwordErrors.currentPassword && (
@@ -567,9 +569,8 @@ const ProfileModal = ({ isOpen, onClose }) => {
                 )}
               </div>
 
-              {/* New Password */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   New Password
                 </label>
                 <div className="relative">
@@ -579,20 +580,24 @@ const ProfileModal = ({ isOpen, onClose }) => {
                     onChange={(e) =>
                       handlePasswordInputChange("newPassword", e.target.value)
                     }
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${
+                    className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
                       passwordErrors.newPassword
                         ? "border-red-500"
                         : "border-gray-300"
                     }`}
-                    placeholder="Enter new password (min 6 characters)"
+                    placeholder="Min 6 characters"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
                   >
-                    {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                    {showNewPassword ? (
+                      <FaEyeSlash className="text-sm" />
+                    ) : (
+                      <FaEye className="text-sm" />
+                    )}
                   </button>
                 </div>
                 {passwordErrors.newPassword && (
@@ -600,15 +605,11 @@ const ProfileModal = ({ isOpen, onClose }) => {
                     {passwordErrors.newPassword}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1">
-                  Password must be at least 6 characters
-                </p>
               </div>
 
-              {/* Confirm Password */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Confirm New Password
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Confirm Password
                 </label>
                 <div className="relative">
                   <input
@@ -620,7 +621,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
                         e.target.value,
                       )
                     }
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${
+                    className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
                       passwordErrors.confirmPassword
                         ? "border-red-500"
                         : "border-gray-300"
@@ -631,9 +632,13 @@ const ProfileModal = ({ isOpen, onClose }) => {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
                   >
-                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                    {showConfirmPassword ? (
+                      <FaEyeSlash className="text-sm" />
+                    ) : (
+                      <FaEye className="text-sm" />
+                    )}
                   </button>
                 </div>
                 {passwordErrors.confirmPassword && (
@@ -643,13 +648,13 @@ const ProfileModal = ({ isOpen, onClose }) => {
                 )}
               </div>
 
-              <div className="pt-4">
+              <div className="pt-2">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                  className="w-full bg-green-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
                 >
-                  <FaLock className="inline mr-2" />
+                  <FaLock className="inline mr-1" />
                   {loading ? "Changing..." : "Change Password"}
                 </button>
               </div>
@@ -658,36 +663,35 @@ const ProfileModal = ({ isOpen, onClose }) => {
 
           {/* Secret Word Tab */}
           {activeTab === "secret" && (
-            <div className="space-y-5">
+            <div className="space-y-3">
               {user?.secretWordSet ? (
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center mb-2">
-                    <FaShieldAlt className="text-green-600 mr-2" />
-                    <h3 className="font-semibold text-green-800">
+                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center mb-1">
+                    <FaShieldAlt className="text-green-600 mr-1 text-sm" />
+                    <h3 className="font-semibold text-green-800 text-sm">
                       Secret Word Set
                     </h3>
                   </div>
-                  <p className="text-sm text-green-700">
-                    Your secret word is already set. You can use it to recover
-                    your password if needed.
+                  <p className="text-xs text-green-700">
+                    Your secret word is set. You can use it to recover your
+                    password.
                   </p>
-                  <p className="text-xs text-green-600 mt-2">
-                    <strong>Note:</strong> For security reasons, you cannot view
-                    or change your secret word once set.
+                  <p className="text-xs text-green-600 mt-1">
+                    For security, you cannot view or change it once set.
                   </p>
                 </div>
               ) : (
-                <form onSubmit={handleSetSecretWord} className="space-y-5">
-                  <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200 mb-4">
-                    <p className="text-sm text-yellow-800">
-                      <strong>⚠️ Secret word not set!</strong> Setting a secret
-                      word allows you to recover your password if you forget it.
+                <form onSubmit={handleSetSecretWord} className="space-y-3">
+                  <div className="p-2 bg-yellow-50 rounded-lg border border-yellow-200 mb-2">
+                    <p className="text-xs text-yellow-800">
+                      <strong>⚠️ Not set!</strong> Set a secret word to recover
+                      your password if forgotten.
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <FaShieldAlt className="inline mr-2 text-green-600" />
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      <FaShieldAlt className="inline mr-1 text-green-600 text-xs" />
                       Secret Word
                     </label>
                     <div className="relative">
@@ -700,20 +704,24 @@ const ProfileModal = ({ isOpen, onClose }) => {
                             e.target.value,
                           )
                         }
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${
+                        className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
                           secretWordErrors.secretWord
                             ? "border-red-500"
                             : "border-gray-300"
                         }`}
-                        placeholder="Enter a secret word (min 4 characters)"
+                        placeholder="Min 4 characters"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowSecretWord(!showSecretWord)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
                       >
-                        {showSecretWord ? <FaEyeSlash /> : <FaEye />}
+                        {showSecretWord ? (
+                          <FaEyeSlash className="text-sm" />
+                        ) : (
+                          <FaEye className="text-sm" />
+                        )}
                       </button>
                     </div>
                     {secretWordErrors.secretWord && (
@@ -721,14 +729,10 @@ const ProfileModal = ({ isOpen, onClose }) => {
                         {secretWordErrors.secretWord}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500 mt-1">
-                      Choose a secret word that you'll remember. Use it to
-                      recover your password if forgotten.
-                    </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
                       Confirm Secret Word
                     </label>
                     <div className="relative">
@@ -741,12 +745,12 @@ const ProfileModal = ({ isOpen, onClose }) => {
                             e.target.value,
                           )
                         }
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${
+                        className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
                           secretWordErrors.confirmSecretWord
                             ? "border-red-500"
                             : "border-gray-300"
                         }`}
-                        placeholder="Confirm your secret word"
+                        placeholder="Confirm secret word"
                         required
                       />
                       <button
@@ -754,9 +758,13 @@ const ProfileModal = ({ isOpen, onClose }) => {
                         onClick={() =>
                           setShowConfirmSecretWord(!showConfirmSecretWord)
                         }
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
                       >
-                        {showConfirmSecretWord ? <FaEyeSlash /> : <FaEye />}
+                        {showConfirmSecretWord ? (
+                          <FaEyeSlash className="text-sm" />
+                        ) : (
+                          <FaEye className="text-sm" />
+                        )}
                       </button>
                     </div>
                     {secretWordErrors.confirmSecretWord && (
@@ -766,13 +774,13 @@ const ProfileModal = ({ isOpen, onClose }) => {
                     )}
                   </div>
 
-                  <div className="pt-4">
+                  <div className="pt-2">
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                      className="w-full bg-green-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
                     >
-                      <FaShieldAlt className="inline mr-2" />
+                      <FaShieldAlt className="inline mr-1" />
                       {loading ? "Setting..." : "Set Secret Word"}
                     </button>
                   </div>
@@ -782,11 +790,11 @@ const ProfileModal = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {/* Footer with close button */}
-        <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+        {/* Footer */}
+        <div className="border-t border-gray-200 px-5 py-3 bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors duration-200"
+            className="w-full text-gray-600 text-sm font-medium py-1.5 hover:text-gray-800 transition"
           >
             Close
           </button>

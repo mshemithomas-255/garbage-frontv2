@@ -14,6 +14,8 @@ import {
   FaPlus,
   FaMoneyBillWave,
   FaSearch,
+  FaPhone,
+  FaEnvelope,
 } from "react-icons/fa";
 import toast from "react-hot-toast";
 
@@ -27,6 +29,7 @@ const UserManagement = ({ refreshData }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     role: "user",
   });
@@ -42,7 +45,7 @@ const UserManagement = ({ refreshData }) => {
   const filteredUsers = users.filter(
     (user) =>
       user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+      user.phone?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleSubmit = async (e) => {
@@ -60,7 +63,13 @@ const UserManagement = ({ refreshData }) => {
       await refreshData();
       setIsModalOpen(false);
       setEditingUser(null);
-      setFormData({ name: "", email: "", password: "", role: "user" });
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        role: "user",
+      });
     } catch (error) {
       toast.error(error.message || "Operation failed");
     }
@@ -71,6 +80,7 @@ const UserManagement = ({ refreshData }) => {
     setFormData({
       name: user.name,
       email: user.email,
+      phone: user.phone,
       password: "",
       role: user.role,
     });
@@ -144,7 +154,7 @@ const UserManagement = ({ refreshData }) => {
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search users..."
+              placeholder="Search by name or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="input-mobile pl-10"
@@ -159,14 +169,23 @@ const UserManagement = ({ refreshData }) => {
         </div>
       </div>
 
-      {/* Users List - Mobile Optimized */}
+      {/* Users List */}
       <div className="space-y-3">
         {filteredUsers.map((user) => (
           <div key={user._id} className="card-mobile">
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <h3 className="font-semibold text-base">{user.name}</h3>
-                <p className="text-sm text-gray-600">{user.email}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-1">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <FaPhone className="mr-1 text-xs" />
+                    <span>{user.phone}</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <FaEnvelope className="mr-1 text-xs" />
+                    <span className="text-xs">{user.email}</span>
+                  </div>
+                </div>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${getPaymentColor(user.paymentStatus)}`}
@@ -209,43 +228,97 @@ const UserManagement = ({ refreshData }) => {
 
       {/* User Form Modal */}
       {isModalOpen && (
-        <div className="modal-mobile">
-          <div className="modal-content-mobile">
-            <div className="sticky top-0 bg-white border-b p-4">
-              <h2 className="text-xl font-bold">
-                {editingUser ? "Edit User" : "Add New User"}
-              </h2>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+          style={{ backdropFilter: "blur(4px)" }}
+        >
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
+            <div className="bg-green-600 px-5 py-3">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-white">
+                  {editingUser ? "Edit User" : "Add New User"}
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setEditingUser(null);
+                    setFormData({
+                      name: "",
+                      email: "",
+                      phone: "",
+                      password: "",
+                      role: "user",
+                    });
+                  }}
+                  className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
-            <form onSubmit={handleSubmit} className="p-4">
-              <div className="space-y-4">
+
+            <form onSubmit={handleSubmit} className="p-5">
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-bold mb-2">Name</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Full Name
+                  </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="input-mobile"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold mb-2">Email</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="e.g., 0712345678"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="input-mobile"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold mb-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Password
                   </label>
                   <input
@@ -254,24 +327,26 @@ const UserManagement = ({ refreshData }) => {
                     onChange={(e) =>
                       setFormData({ ...formData, password: e.target.value })
                     }
-                    className="input-mobile"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required={!editingUser}
+                    placeholder={
+                      editingUser
+                        ? "Leave blank to keep current"
+                        : "Min 6 characters"
+                    }
                   />
-                  {editingUser && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Leave blank to keep current password
-                    </p>
-                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold mb-2">Role</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Role
+                  </label>
                   <select
                     value={formData.role}
                     onChange={(e) =>
                       setFormData({ ...formData, role: e.target.value })
                     }
-                    className="input-mobile"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -279,7 +354,7 @@ const UserManagement = ({ refreshData }) => {
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-2 mt-6 pt-4 border-t">
+              <div className="flex space-x-2 mt-5 pt-3 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => {
@@ -288,17 +363,18 @@ const UserManagement = ({ refreshData }) => {
                     setFormData({
                       name: "",
                       email: "",
+                      phone: "",
                       password: "",
                       role: "user",
                     });
                   }}
-                  className="px-4 py-2 border rounded-lg"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg"
+                  className="flex-1 bg-green-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700"
                 >
                   {editingUser ? "Update" : "Create"}
                 </button>
@@ -310,54 +386,126 @@ const UserManagement = ({ refreshData }) => {
 
       {/* Payment Modal */}
       {showPaymentModal && (
-        <div className="modal-mobile">
-          <div className="modal-content-mobile">
-            <div className="sticky top-0 bg-white border-b p-4">
-              <h2 className="text-xl font-bold">Add Payment</h2>
-            </div>
-            <div className="p-4 space-y-4">
-              <div>
-                <label className="block text-sm font-bold mb-2">
-                  User: {selectedUser?.name}
-                </label>
-                <label className="block text-sm font-bold mb-2">
-                  Amount (KSh)
-                </label>
-                <input
-                  type="number"
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(parseFloat(e.target.value))}
-                  className="input-mobile"
-                  placeholder="Enter amount"
-                  min="0"
-                  step="0.01"
-                  autoFocus
-                />
-                <p className="text-sm text-gray-500 mt-2">
-                  Current paid: KSh {selectedUser?.paidAmount || 0}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Status: {selectedUser?.paymentStatus}
-                </p>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+          style={{ backdropFilter: "blur(4px)" }}
+        >
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-auto overflow-hidden">
+            <div className="bg-green-600 px-5 py-3">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-white">
+                  Add Payment
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setSelectedUser(null);
+                    setPaymentAmount(0);
+                  }}
+                  className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
-            <div className="sticky bottom-0 bg-white border-t p-4 flex space-x-2">
-              <button
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  setSelectedUser(null);
-                  setPaymentAmount(0);
-                }}
-                className="flex-1 px-4 py-2 border rounded-lg"
+
+            <div className="p-5">
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-500">User:</span>
+                  <span className="font-medium">{selectedUser?.name}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Phone:</span>
+                  <span className="font-medium">{selectedUser?.phone}</span>
+                </div>
+              </div>
+
+              <div
+                className={`rounded-lg p-3 mb-4 text-sm ${
+                  selectedUser?.paymentStatus === "paid"
+                    ? "bg-green-50 border border-green-200"
+                    : selectedUser?.paymentStatus === "partial"
+                      ? "bg-yellow-50 border border-yellow-200"
+                      : "bg-red-50 border border-red-200"
+                }`}
               >
-                Cancel
-              </button>
-              <button
-                onClick={handlePaymentSubmit}
-                className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg"
-              >
-                Add Payment
-              </button>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span
+                    className={`font-semibold ${
+                      selectedUser?.paymentStatus === "paid"
+                        ? "text-green-600"
+                        : selectedUser?.paymentStatus === "partial"
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                    }`}
+                  >
+                    {selectedUser?.paymentStatus?.toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-gray-600">Paid:</span>
+                  <span className="font-semibold">
+                    KSh {selectedUser?.paidAmount || 0}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Amount (KSh)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                    KSh
+                  </span>
+                  <input
+                    type="number"
+                    value={paymentAmount}
+                    onChange={(e) =>
+                      setPaymentAmount(parseFloat(e.target.value))
+                    }
+                    className="w-full pl-12 pr-3 py-2 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setSelectedUser(null);
+                    setPaymentAmount(0);
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePaymentSubmit}
+                  disabled={!paymentAmount || paymentAmount <= 0}
+                  className="flex-1 bg-green-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                >
+                  Add Payment
+                </button>
+              </div>
             </div>
           </div>
         </div>

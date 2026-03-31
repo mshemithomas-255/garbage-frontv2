@@ -10,7 +10,6 @@ export const login = createAsyncThunk(
       localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;
     } catch (error) {
-      // Error toast is already shown by interceptor
       return rejectWithValue(error.message);
     }
   },
@@ -93,12 +92,12 @@ export const resetPassword = createAsyncThunk(
 
 export const updateProfile = createAsyncThunk(
   "auth/updateProfile",
-  async ({ name, email }, { getState, rejectWithValue }) => {
+  async ({ name, email, phone }, { getState, rejectWithValue }) => {
     try {
       const token = getState().auth.token;
       const response = await api.put(
         "/api/auth/update-profile",
-        { name, email },
+        { name, email, phone },
         { headers: { "x-auth-token": token } },
       );
       localStorage.setItem("token", response.data.token);
@@ -158,6 +157,10 @@ const authSlice = createSlice({
         }
       })
       .addCase(resetPassword.fulfilled, (state, action) => {
+        state.token = action.payload.token;
+        state.user = action.payload.user;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
         state.token = action.payload.token;
         state.user = action.payload.user;
       });

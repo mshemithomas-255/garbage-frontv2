@@ -6,11 +6,9 @@ export const fetchAdmins = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/api/admins");
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to fetch admins" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -20,11 +18,9 @@ export const createAdmin = createAsyncThunk(
   async (adminData, { rejectWithValue }) => {
     try {
       const response = await api.post("/api/admins", adminData);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to create admin" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -36,9 +32,7 @@ export const deleteAdmin = createAsyncThunk(
       await api.delete(`/api/admins/${id}`);
       return id;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { msg: "Failed to delete admin" },
-      );
+      return rejectWithValue(error.message);
     }
   },
 );
@@ -62,7 +56,7 @@ const adminSlice = createSlice({
       })
       .addCase(fetchAdmins.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.msg || action.error.message;
+        state.error = action.payload;
       })
       .addCase(createAdmin.fulfilled, (state, action) => {
         state.admins.push(action.payload);
